@@ -4,29 +4,29 @@ A complete, production-quality Flask web application for intelligent insurance r
 
 ## Features
 
-✨ **AI Risk Prediction**
+**AI Risk Prediction**
 - Machine learning model (RandomForest) trained on 500+ synthetic insurance profiles
 - Analyzes 14 personal/health/financial factors to compute risk scores (0-100)
 - Explainable decisions with clear factor contributions
 
-📊 **Multi-Insurance Support**
+**Multi-Insurance Support**
 - Life, Health, Vehicle, and Property insurance types
 - Dynamic coverage limits based on risk profile
 - Personalized premium calculations
 
-🎯 **Comprehensive Underwriting Engine**
+**Comprehensive Underwriting Engine**
 - Risk-adjusted coverage multipliers by risk band
 - 16+ adjustment factors (smoking, BMI, employment, etc.)
 - Premium calculation: base amount × annual_rate × duration
 
-💻 **Modern Web Interface**
+**Modern Web Interface**
 - Responsive, mobile-first design (375px–4K)
 - Multi-step profile completion form with progress tracking
 - Real-time risk score visualization with SVG animation
 - Interactive charts (Chart.js) for risk breakdown
 - Sortable application history table
 
-🔒 **Security**
+**Security**
 - Password hashing (PBKDF2-SHA256)
 - Parameterized SQL queries (no injection)
 - Session-based authentication
