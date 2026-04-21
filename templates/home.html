@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}SecureLifeAI - AI-Powered Insurance Underwriting{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <a href="/" class="logo">SecureLifeAI</a>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/" class="active">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}" class="btn-primary">Sign Up</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Insurance Underwriting, Powered by AI</h1>
+        <p>Get instant, personalized insurance coverage in minutes. Fair pricing. Transparent decisions.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('signup') }}" class="btn btn-large btn-primary">Get Started</a>
+            <a href="#features" class="btn btn-large btn-secondary">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section id="features" class="features">
+    <div class="container">
+        <h2>Why Choose SecureLifeAI?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>AI Risk Prediction</h3>
+                <p>Machine learning models analyze 14+ personal factors to predict insurance risk accurately.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Personalized Coverage</h3>
+                <p>Get coverage limits customized to your unique profile and health status.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏠</div>
+                <h3>Multi-Insurance Support</h3>
+                <p>Life, Health, Vehicle, and Property insurance—all in one platform.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Explainable Decisions</h3>
+                <p>Understand exactly why you got approved or rejected. Full transparency.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS SECTION -->
+<section class="how-it-works">
+    <div class="container">
+        <h2>How It Works</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Sign Up</h4>
+                <p>Create your account in seconds</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Complete Profile</h4>
+                <p>Answer health & lifestyle questions</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Apply for Insurance</h4>
+                <p>Choose coverage amount & duration</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Get Decision</h4>
+                <p>AI approval & instant premium quote</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>SecureLifeAI</h4>
+                <p>AI-powered insurance underwriting platform</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>support@securelifeai.com</p>
+                <p>+1-800-INSURE-1</p>
+            </div>
+        </div>
+        <hr>
+        <div class="footer-bottom">
+            <p>&copy; 2026 SecureLifeAI. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+{% endblock %}

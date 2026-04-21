@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - SecureLifeAI{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <a href="/" class="logo">SecureLifeAI</a>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>Create Account</h1>
+        <p class="auth-subtitle">Join SecureLifeAI today</p>
+
+        <form method="POST" class="auth-form" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    required 
+                    placeholder="John Doe"
+                    class="form-control"
+                >
+                <small class="error-text" style="display:none;">Name is required</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    placeholder="you@example.com"
+                    class="form-control"
+                >
+                <small class="error-text" style="display:none;">Valid email is required</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="••••••••"
+                    class="form-control"
+                >
+                <small class="error-text" style="display:none;">Password must be at least 6 characters</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input 
+                        type="number" 
+                        id="age" 
+                        name="age" 
+                        required 
+                        min="18" 
+                        max="120"
+                        placeholder="30"
+                        class="form-control"
+                    >
+                    <small class="error-text" style="display:none;">Age must be 18-120</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="income">Annual Income (₹)</label>
+                    <input 
+                        type="number" 
+                        id="income" 
+                        name="income" 
+                        required 
+                        min="0" 
+                        step="10000"
+                        placeholder="500000"
+                        class="form-control"
+                    >
+                    <small class="error-text" style="display:none;">Income is required</small>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+        </form>
+
+        <p class="auth-footer">
+            Already have an account? <a href="{{ url_for('login') }}">Log In</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.querySelector('.auth-form').addEventListener('submit', function(e) {
+    let valid = true;
+    const fields = this.querySelectorAll('[required]');
+    
+    fields.forEach(field => {
+        if (!field.value.trim()) {
+            valid = false;
+            field.parentElement.querySelector('.error-text').style.display = 'block';
+            field.classList.add('invalid');
+        } else {
+            field.parentElement.querySelector('.error-text').style.display = 'none';
+            field.classList.remove('invalid');
+        }
+    });
+    
+    if (!valid) e.preventDefault();
+});
+</script>
+{% endblock %}

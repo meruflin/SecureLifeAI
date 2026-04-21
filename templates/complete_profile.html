@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Your Profile - SecureLifeAI{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <a href="/" class="logo">SecureLifeAI</a>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Complete Your Profile</h1>
+        <p>We need a few details to assess your insurance needs</p>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-steps">
+        <div class="step-circle active" data-step="1">1</div>
+        <div class="step-connector"></div>
+        <div class="step-circle" data-step="2">2</div>
+        <div class="step-connector"></div>
+        <div class="step-circle" data-step="3">3</div>
+        <div class="step-connector"></div>
+        <div class="step-circle" data-step="4">4</div>
+        <div class="step-connector"></div>
+        <div class="step-circle" data-step="5">5</div>
+    </div>
+
+    <!-- FORM -->
+    <form method="POST" class="profile-form" id="profileForm" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- SECTION 1: PHYSICAL & HEALTH -->
+        <fieldset class="form-section" id="section-1" style="display: block;">
+            <h2><span class="section-number">1</span> Physical & Health Information</h2>
+            
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" class="form-control" required>
+                    <option value="M" {% if profile and profile.gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if profile and profile.gender == 'F' %}selected{% endif %}>Female</option>
+                    <option value="O" {% if profile and profile.gender == 'O' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" name="height" class="form-control" required min="100" max="250" placeholder="170" value="{{ profile.height if profile else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" name="weight" class="form-control" required min="20" max="300" step="0.1" placeholder="70" value="{{ profile.weight if profile else '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="bmi_display">BMI</label>
+                <input type="text" id="bmi_display" class="form-control" readonly placeholder="Calculated automatically" style="background: #f0f0f0;">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="smoking">Do you smoke?</label>
+                    <select id="smoking" name="smoking" class="form-control" required>
+                        <option value="0" {% if profile and not profile.smoking %}selected{% endif %}>No</option>
+                        <option value="1" {% if profile and profile.smoking %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alcohol">Do you consume alcohol?</label>
+                    <select id="alcohol" name="alcohol" class="form-control" required>
+                        <option value="0" {% if profile and not profile.alcohol %}selected{% endif %}>No</option>
+                        <option value="1" {% if profile and profile.alcohol %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="exercise_freq">Exercise Frequency</label>
+                <select id="exercise_freq" name="exercise_freq" class="form-control" required>
+                    <option value="none" {% if profile and profile.exercise_freq == 'none' %}selected{% endif %}>None</option>
+                    <option value="occasional" {% if profile and profile.exercise_freq == 'occasional' %}selected{% endif %}>Occasional (1-2 times/week)</option>
+                    <option value="regular" {% if profile and profile.exercise_freq == 'regular' %}selected{% endif %}>Regular (3+ times/week)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="medical_history">Medical History</label>
+                <select id="medical_history" name="medical_history" class="form-control" required>
+                    <option value="none" {% if profile and profile.medical_history == 'none' %}selected{% endif %}>None</option>
+                    <option value="diabetes" {% if profile and profile.medical_history == 'diabetes' %}selected{% endif %}>Diabetes</option>
+                    <option value="hypertension" {% if profile and profile.medical_history == 'hypertension' %}selected{% endif %}>Hypertension</option>
+                    <option value="heart" {% if profile and profile.medical_history == 'heart' %}selected{% endif %}>Heart Disease</option>
+                    <option value="other" {% if profile and profile.medical_history == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+
+            <div class="form-navigation">
+                <button type="button" class="btn btn-secondary btn-disabled" id="prevBtn-1" disabled>← Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextSection(2)">Next →</button>
+            </div>
+        </fieldset>
+
+        <!-- SECTION 2: EMPLOYMENT & FAMILY -->
+        <fieldset class="form-section" id="section-2" style="display: none;">
+            <h2><span class="section-number">2</span> Employment & Family</h2>
+
+            <div class="form-group">
+                <label for="employment_type">Employment Type</label>
+                <select id="employment_type" name="employment_type" class="form-control" required>
+                    <option value="salaried" {% if profile and profile.employment_type == 'salaried' %}selected{% endif %}>Salaried Employee</option>
+                    <option value="self-employed" {% if profile and profile.employment_type == 'self-employed' %}selected{% endif %}>Self-Employed</option>
+                    <option value="unemployed" {% if profile and profile.employment_type == 'unemployed' %}selected{% endif %}>Unemployed</option>
+                    <option value="retired" {% if profile and profile.employment_type == 'retired' %}selected{% endif %}>Retired</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dependents">Number of Dependents</label>
+                <input type="number" id="dependents" name="dependents" class="form-control" required min="0" max="10" placeholder="0" value="{{ profile.dependents if profile else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="family_diseases">Any family history of serious diseases?</label>
+                <select id="family_diseases" name="family_diseases" class="form-control" required>
+                    <option value="0" {% if profile and not profile.family_diseases %}selected{% endif %}>No</option>
+                    <option value="1" {% if profile and profile.family_diseases %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+
+            <div class="form-navigation">
+                <button type="button" class="btn btn-secondary" onclick="prevSection(1)">← Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextSection(3)">Next →</button>
+            </div>
+        </fieldset>
+
+        <!-- SECTION 3: PROPERTY -->
+        <fieldset class="form-section" id="section-3" style="display: none;">
+            <h2><span class="section-number">3</span> Property Information</h2>
+
+            <div class="form-group">
+                <label for="owns_house">Do you own a house?</label>
+                <select id="owns_house" name="owns_house" class="form-control" required>
+                    <option value="0" {% if profile and not profile.owns_house %}selected{% endif %}>No</option>
+                    <option value="1" {% if profile and profile.owns_house %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="property_type">Property Type</label>
+                <select id="property_type" name="property_type" class="form-control" required>
+                    <option value="none" {% if profile and profile.property_type == 'none' %}selected{% endif %}>None</option>
+                    <option value="apartment" {% if profile and profile.property_type == 'apartment' %}selected{% endif %}>Apartment</option>
+                    <option value="villa" {% if profile and profile.property_type == 'villa' %}selected{% endif %}>Villa</option>
+                    <option value="plot" {% if profile and profile.property_type == 'plot' %}selected{% endif %}>Plot</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="property_value">Property Value (₹)</label>
+                <input type="number" id="property_value" name="property_value" class="form-control" required min="0" step="100000" placeholder="5000000" value="{{ profile.property_value if profile else '' }}">
+            </div>
+
+            <div class="form-navigation">
+                <button type="button" class="btn btn-secondary" onclick="prevSection(2)">← Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextSection(4)">Next →</button>
+            </div>
+        </fieldset>
+
+        <!-- SECTION 4: VEHICLES -->
+        <fieldset class="form-section" id="section-4" style="display: none;">
+            <h2><span class="section-number">4</span> Vehicles Owned</h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="two_wheelers">Two-Wheelers</label>
+                    <input type="number" id="two_wheelers" name="two_wheelers" class="form-control" required min="0" max="10" placeholder="0" value="{{ profile.two_wheelers if profile else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="three_wheelers">Three-Wheelers</label>
+                    <input type="number" id="three_wheelers" name="three_wheelers" class="form-control" required min="0" max="10" placeholder="0" value="{{ profile.three_wheelers if profile else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="four_wheelers">Four-Wheelers</label>
+                    <input type="number" id="four_wheelers" name="four_wheelers" class="form-control" required min="0" max="10" placeholder="0" value="{{ profile.four_wheelers if profile else '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="driving_history">Driving History</label>
+                <select id="driving_history" name="driving_history" class="form-control" required>
+                    <option value="clean" {% if profile and profile.driving_history == 'clean' %}selected{% endif %}>Clean Record</option>
+                    <option value="minor" {% if profile and profile.driving_history == 'minor' %}selected{% endif %}>Minor Violations</option>
+                    <option value="major" {% if profile and profile.driving_history == 'major' %}selected{% endif %}>Major Accidents</option>
+                </select>
+            </div>
+
+            <div class="form-navigation">
+                <button type="button" class="btn btn-secondary" onclick="prevSection(3)">← Previous</button>
+                <button type="button" class="btn btn-primary" onclick="nextSection(5)">Next →</button>
+            </div>
+        </fieldset>
+
+        <!-- SECTION 5: REVIEW & SUBMIT -->
+        <fieldset class="form-section" id="section-5" style="display: none;">
+            <h2><span class="section-number">5</span> Review & Submit</h2>
+
+            <div class="review-box">
+                <p>Thank you for completing your profile! We'll use this information to calculate your insurance eligibility and risk score.</p>
+                <p style="margin-top: 1rem; color: #666;">By submitting, you confirm that all information is accurate and complete.</p>
+            </div>
+
+            <div class="form-navigation">
+                <button type="button" class="btn btn-secondary" onclick="prevSection(4)">← Previous</button>
+                <button type="submit" class="btn btn-primary btn-large">Complete Profile</button>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+<script>
+// BMI Calculator
+function calculateBMI() {
+    const height = parseFloat(document.getElementById('height').value);
+    const weight = parseFloat(document.getElementById('weight').value);
+    
+    if (height && weight) {
+        const bmi = weight / ((height / 100) ** 2);
+        const bmiDisplay = document.getElementById('bmi_display');
+        bmiDisplay.value = bmi.toFixed(2);
+        
+        // Color coding
+        if (bmi < 18.5) {
+            bmiDisplay.style.borderColor = '#3b82f6';
+        } else if (bmi < 25) {
+            bmiDisplay.style.borderColor = '#10b981';
+        } else if (bmi < 30) {
+            bmiDisplay.style.borderColor = '#f59e0b';
+        } else {
+            bmiDisplay.style.borderColor = '#ef4444';
+        }
+    }
+}
+
+document.getElementById('height').addEventListener('input', calculateBMI);
+document.getElementById('weight').addEventListener('input', calculateBMI);
+
+// Multi-step form navigation
+function nextSection(n) {
+    if (validateSection(n - 1)) {
+        showSection(n);
+    }
+}
+
+function prevSection(n) {
+    showSection(n);
+}
+
+function showSection(n) {
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`section-${i}`).style.display = i === n ? 'block' : 'none';
+        document.querySelector(`[data-step="${i}"]`).classList.toggle('active', i === n);
+        
+        for (let j = 1; j < i; j++) {
+            document.querySelector(`[data-step="${j}"]`).classList.add('completed');
+        }
+        for (let j = i + 1; j <= 5; j++) {
+            document.querySelector(`[data-step="${j}"]`).classList.remove('completed');
+        }
+    }
+    window.scrollTo(0, 0);
+}
+
+function validateSection(n) {
+    const section = document.getElementById(`section-${n}`);
+    const inputs = section.querySelectorAll('[required]');
+    let valid = true;
+    
+    inputs.forEach(input => {
+        if (!input.value) {
+            valid = false;
+            input.classList.add('invalid');
+        } else {
+            input.classList.remove('invalid');
+        }
+    });
+    
+    return valid;
+}
+
+// Initialize
+calculateBMI();
+</script>
+{% endblock %}

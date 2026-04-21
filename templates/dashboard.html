@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SecureLifeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">SecureLifeAI</div>
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item active">
+                📊 Dashboard
+            </a>
+            <a href="{{ url_for('apply') }}" class="menu-item">
+                📝 Apply for Insurance
+            </a>
+            <a href="{{ url_for('history') }}" class="menu-item">
+                📜 Application History
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item">
+                🚪 Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Welcome, {{ user[1] }}!</h1>
+            <p>Your Insurance Dashboard</p>
+        </div>
+
+        <!-- RISK SCORE CARD -->
+        <div class="card card-large">
+            <h2>Your Risk Score</h2>
+            <div class="risk-score-container">
+                <div class="risk-score-circle" data-risk="{{ risk_score }}">
+                    <svg width="200" height="200" viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" stroke-width="8"></circle>
+                        <circle class="progress-ring" cx="100" cy="100" r="90" fill="none" stroke="#2563eb" stroke-width="8" stroke-dasharray="565" stroke-dashoffset="565"></circle>
+                    </svg>
+                    <div class="risk-score-text">
+                        <span class="risk-score-number">{{ "%.0f"|format(risk_score) }}</span>
+                        <span class="risk-score-label">
+                            {% if risk_score <= 30 %}LOW{% elif risk_score <= 60 %}MEDIUM{% elif risk_score <= 80 %}HIGH{% else %}VERY HIGH{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="risk-score-details">
+                    <p><strong>Risk Assessment:</strong></p>
+                    <p class="risk-description">
+                        {% if risk_score <= 30 %}
+                            You have a low risk profile. You qualify for maximum coverage at favorable rates.
+                        {% elif risk_score <= 60 %}
+                            You have a moderate risk profile. Coverage is adjusted based on your lifestyle and health factors.
+                        {% elif risk_score <= 80 %}
+                            You have a higher risk profile. Coverage limits are reduced to manage risk appropriately.
+                        {% else %}
+                            You have a very high risk profile. Limited coverage is available. Focus on improving health markers.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COVERAGE LIMITS GRID -->
+        <div class="cards-grid">
+            {% for ins_type, limit_data in limits.items() %}
+            <div class="card">
+                <h3>
+                    {% if ins_type == 'life' %}👤 Life Insurance
+                    {% elif ins_type == 'health' %}⚕️  Health Insurance
+                    {% elif ins_type == 'vehicle' %}🚗 Vehicle Insurance
+                    {% else %}🏠 Property Insurance
+                    {% endif %}
+                </h3>
+                <div class="coverage-range">
+                    <p class="label">Coverage Range</p>
+                    <div class="amount-row">
+                        <span class="min">₹{{"{:,.0f}".format(limit_data['min_coverage'])}}</span>
+                        <span class="range-indicator">→</span>
+                        <span class="max">₹{{"{:,.0f}".format(limit_data['max_coverage'])}}</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="eligibility">
+                    <p class="label">Eligibility: <strong>{{limit_data['eligibility_pct']}}%</strong></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- ELIGIBILITY BARS -->
+        <div class="card">
+            <h2>Insurance Eligibility</h2>
+            <div class="eligibility-bars">
+                {% for ins_type, limit_data in limits.items() %}
+                <div class="bar-group">
+                    <label>
+                        {% if ins_type == 'life' %}Life
+                        {% elif ins_type == 'health' %}Health
+                        {% elif ins_type == 'vehicle' %}Vehicle
+                        {% else %}Property
+                        {% endif %}
+                    </label>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{limit_data['eligibility_pct']}}%;">
+                            {{limit_data['eligibility_pct']}}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RISK BREAKDOWN CHART -->
+        <div class="cards-grid">
+            <div class="card">
+                <h2>Risk Factor Breakdown</h2>
+                <canvas id="riskChart" width="300" height="300"></canvas>
+            </div>
+            
+            <div class="card">
+                <h2>Factor Contributions</h2>
+                <canvas id="factorsChart" width="300" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- PROFILE SUMMARY -->
+        <div class="card">
+            <h2>Your Profile Summary</h2>
+            <div class="profile-summary">
+                <div class="summary-row">
+                    <span class="label">Age:</span>
+                    <span class="value">{{ user[2] }} years</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Annual Income:</span>
+                    <span class="value">₹{{"{:,.0f}".format(user[3])}}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">BMI:</span>
+                    <span class="value">{{ "%.1f"|format(profile.bmi) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Employment:</span>
+                    <span class="value">{{ profile.employment_type.replace('-', ' ').title() }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Smoking:</span>
+                    <span class="value">{% if profile.smoking %}Yes{% else %}No{% endif %}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Vehicles Owned:</span>
+                    <span class="value">{{ vehicles_total }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Property Owner:</span>
+                    <span class="value">{% if profile.owns_house %}Yes{% else %}No{% endif %}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Driving Record:</span>
+                    <span class="value">{{ profile.driving_history.replace('-', ' ').title() }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI EXPLANATION -->
+        <div class="card explanation-box">
+            <div class="explanation-icon">💡</div>
+            <div class="explanation-content">
+                <h3>AI Insight</h3>
+                <p>{{ limits['life']['explanation'] }}</p>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-box">
+            <h2>Ready to Apply?</h2>
+            <p>Check your personalized coverage limits and apply for insurance today.</p>
+            <a href="{{ url_for('apply') }}" class="btn btn-primary btn-large">Apply Now</a>
+        </div>
+    </main>
+</div>
+
+<!-- HAMBURGER MENU (MOBILE) -->
+<button class="hamburger-menu" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<script>
+// Mobile sidebar toggle
+document.getElementById('hamburger').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// Risk score circle animation
+window.addEventListener('load', function() {
+    const circle = document.querySelector('.progress-ring');
+    const riskScore = parseFloat(document.querySelector('.risk-score-circle').dataset.risk);
+    const circumference = 565;
+    const offset = circumference - (riskScore / 100) * circumference;
+    
+    setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+        circle.style.transition = 'stroke-dashoffset 1.2s ease-in-out';
+    }, 100);
+});
+
+// Charts.js initialization
+const riskChartContext = document.getElementById('riskChart').getContext('2d');
+const riskChart = new Chart(riskChartContext, {
+    type: 'doughnut',
+    data: {
+        labels: ['Health', 'Financial', 'Lifestyle', 'Family', 'Vehicles'],
+        datasets: [{
+            data: {{ risk_chart_values|tojson }},
+            backgroundColor: ['#ef4444', '#f59e0b', '#eab308', '#8b5cf6', '#3b82f6'],
+            borderColor: '#fff',
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+const factorsChartContext = document.getElementById('factorsChart').getContext('2d');
+const factorsChart = new Chart(factorsChartContext, {
+    type: 'bar',
+    data: {
+        labels: {{ factors_chart_labels|tojson }},
+        datasets: [{
+            label: 'Impact on Risk',
+            data: {{ factors_chart_values|tojson }},
+            backgroundColor: ['#3b82f6', '#ef4444', '#ef4444', '#10b981', '#10b981'],
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+{% endblock %}

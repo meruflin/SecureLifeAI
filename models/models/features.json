@@ -1,0 +1,16 @@
+[
+  "age",
+  "income",
+  "bmi",
+  "smoking",
+  "alcohol",
+  "exercise_freq",
+  "medical_history_score",
+  "dependents",
+  "owns_house",
+  "property_value_norm",
+  "vehicles_total",
+  "driving_score",
+  "employment_score",
+  "family_risk_score"
+]

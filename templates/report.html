@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Application Report - SecureLifeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">SecureLifeAI</div>
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item">
+                📊 Dashboard
+            </a>
+            <a href="{{ url_for('apply') }}" class="menu-item">
+                📝 Apply for Insurance
+            </a>
+            <a href="{{ url_for('history') }}" class="menu-item">
+                📜 Application History
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item">
+                🚪 Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Application Report</h1>
+            <p>Your insurance application decision</p>
+        </div>
+
+        {% if application %}
+        <div class="card card-large">
+            <!-- STATUS BADGE -->
+            <div class="status-container">
+                {% if application['status'] == 'approved' %}
+                    <div class="status-badge approved">
+                        <span class="status-icon">✓</span> APPROVED
+                    </div>
+                    <h2 class="status-heading">Congratulations!</h2>
+                    <p class="status-message">Your application has been approved.</p>
+                {% else %}
+                    <div class="status-badge rejected">
+                        <span class="status-icon">✗</span> REJECTED
+                    </div>
+                    <h2 class="status-heading">Application Not Approved</h2>
+                    <p class="status-message">We cannot approve the requested amount at this time.</p>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <!-- DETAILS GRID -->
+            <div class="report-grid">
+                <div class="report-item">
+                    <label>Insurance Type</label>
+                    <span class="value">
+                        {% if application['insurance_type'] == 'life' %}👤 Life Insurance
+                        {% elif application['insurance_type'] == 'health' %}⚕️  Health Insurance
+                        {% elif application['insurance_type'] == 'vehicle' %}🚗 Vehicle Insurance
+                        {% elif application['insurance_type'] == 'property' %}🏠 Property Insurance
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="report-item">
+                    <label>Risk Score</label>
+                    <span class="value">{{ "%.0f"|format(application['risk_score']) }}
+                        <span class="risk-badge" style="
+                            {% if application['risk_score'] <= 30 %}background: #10b981;{% elif application['risk_score'] <= 60 %}background: #f59e0b;{% elif application['risk_score'] <= 80 %}background: #ef4444;{% else %}background: #dc2626;{% endif %}
+                        ">
+                            {% if application['risk_score'] <= 30 %}LOW{% elif application['risk_score'] <= 60 %}MEDIUM{% elif application['risk_score'] <= 80 %}HIGH{% else %}VERY HIGH{% endif %}
+                        </span>
+                    </span>
+                </div>
+
+                <div class="report-item">
+                    <label>Duration</label>
+                    <span class="value">{{ application['duration_years'] }} Year{% if application['duration_years'] != 1 %}s{% endif %}</span>
+                </div>
+
+                <div class="report-item">
+                    <label>Created</label>
+                    <span class="value">{{ application['created_at'][:10] }}</span>
+                </div>
+
+                <div class="report-item">
+                    <label>Requested Amount</label>
+                    <span class="value amount">₹{{ "{:,.0f}".format(application['requested_amount']) }}</span>
+                </div>
+
+                <div class="report-item">
+                    <label>Approved Amount</label>
+                    <span class="value amount" style="color: {% if application['approved_amount'] > 0 %}#10b981{% else %}#ef4444{% endif %};">
+                        ₹{{ "{:,.0f}".format(application['approved_amount']) }}
+                    </span>
+                </div>
+            </div>
+
+            {% if application['status'] == 'approved' %}
+            <hr>
+
+            <div class="report-section">
+                <h3>Premium Calculation</h3>
+                <div class="premium-box">
+                    <div class="premium-row">
+                        <span class="label">Approved Coverage</span>
+                        <span class="premium-value">₹{{ "{:,.0f}".format(application['approved_amount']) }}</span>
+                    </div>
+                    <div class="premium-row">
+                        <span class="label">Annual Rate</span>
+                        <span class="premium-value">{{ "%.2f"|format(application['risk_score'] / 50) }}%</span>
+                    </div>
+                    <div class="premium-row">
+                        <span class="label">Coverage Period</span>
+                        <span class="premium-value">{{ application['duration_years'] }} years</span>
+                    </div>
+                    <div class="premium-row premium-total">
+                        <span class="label">Total Premium</span>
+                        <span class="premium-value">₹{{ "{:,.2f}".format(application['premium']) }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <!-- AI EXPLANATION -->
+            <div class="report-section">
+                <h3>AI Decision Explanation</h3>
+                <div class="explanation-box">
+                    <p>{{ application['ai_explanation'] }}</p>
+                </div>
+            </div>
+
+            {% if application['status'] == 'approved' %}
+            <div class="report-actions">
+                <a href="{{ url_for('apply') }}" class="btn btn-secondary">Apply Again</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+            {% else %}
+            <div class="report-actions">
+                <div class="rejection-advice">
+                    <h4>💡 How to Improve Your Chances</h4>
+                    <ul>
+                        <li>Review your risk score on the dashboard</li>
+                        <li>Improve health markers (BMI, exercise, diet)</li>
+                        <li>Maintain a clean driving record</li>
+                        <li>Increase your income</li>
+                        <li>Apply again after 30 days</li>
+                    </ul>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card">
+            <h2>No Application Found</h2>
+            <p>Please submit an application to see results.</p>
+            <a href="{{ url_for('apply') }}" class="btn btn-primary">Go to Apply</a>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<!-- HAMBURGER MENU (MOBILE) -->
+<button class="hamburger-menu" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<script>
+// Mobile sidebar toggle
+document.getElementById('hamburger').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('open');
+});
+</script>
+{% endblock %}

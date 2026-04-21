@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Apply for Insurance - SecureLifeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">SecureLifeAI</div>
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item">
+                📊 Dashboard
+            </a>
+            <a href="{{ url_for('apply') }}" class="menu-item active">
+                📝 Apply for Insurance
+            </a>
+            <a href="{{ url_for('history') }}" class="menu-item">
+                📜 Application History
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item">
+                🚪 Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Apply for Insurance</h1>
+            <p>Choose your insurance type and coverage amount</p>
+        </div>
+
+        <div class="cards-grid">
+            <!-- APPLICATION FORM -->
+            <div class="card card-large">
+                <h2>Insurance Application</h2>
+                
+                <form method="POST" class="apply-form" id="applyForm" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Insurance Type -->
+                    <div class="form-group">
+                        <label for="insurance_type">Insurance Type</label>
+                        <div class="insurance-options">
+                            <label class="radio-option">
+                                <input type="radio" name="insurance_type" value="life" checked>
+                                <span class="radio-label">👤 Life Insurance</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="insurance_type" value="health">
+                                <span class="radio-label">⚕️  Health Insurance</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="insurance_type" value="vehicle">
+                                <span class="radio-label">🚗 Vehicle Insurance</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="insurance_type" value="property">
+                                <span class="radio-label">🏠 Property Insurance</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Coverage Amount -->
+                    <div class="form-group">
+                        <label for="coverage_amount">Coverage Amount (₹)</label>
+                        <div class="slider-group">
+                            <input 
+                                type="range" 
+                                id="coverage_amount" 
+                                name="requested_amount" 
+                                min="100000" 
+                                max="10000000" 
+                                step="100000"
+                                value="1000000"
+                                class="form-slider"
+                            >
+                            <input 
+                                type="number" 
+                                id="coverage_number" 
+                                class="form-control" 
+                                min="100000" 
+                                max="10000000"
+                                value="1000000"
+                            >
+                        </div>
+                        <div class="slider-labels">
+                            <span>₹1L</span>
+                            <span>₹10Cr</span>
+                        </div>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="form-group">
+                        <label for="duration_years">Duration (Years)</label>
+                        <select id="duration_years" name="duration_years" class="form-control" required>
+                            <option value="">Select duration</option>
+                            <option value="1">1 Year</option>
+                            <option value="5" selected>5 Years</option>
+                            <option value="10">10 Years</option>
+                            <option value="20">20 Years</option>
+                            <option value="30">30 Years</option>
+                        </select>
+                    </div>
+
+                    <!-- LIMITS DISPLAY (Updated via API) -->
+                    <div id="limitsBox" style="display: none;" class="limits-box card-inset">
+                        <h3>Coverage Eligibility</h3>
+                        <p><strong>Allowed Range:</strong></p>
+                        <div class="limits-display">
+                            <span id="minLimit">-</span>
+                            <span>to</span>
+                            <span id="maxLimit">-</span>
+                        </div>
+                        <p id="limitsStatus" class="status-text"></p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-large">Submit Application</button>
+                </form>
+            </div>
+
+            <!-- INFO CARD -->
+            <div class="card">
+                <h2>How It Works</h2>
+                <ol>
+                    <li><strong>Select Type:</strong> Choose which insurance you need</li>
+                    <li><strong>Set Amount:</strong> Slide to your desired coverage</li>
+                    <li><strong>Choose Duration:</strong> Pick coverage period</li>
+                    <li><strong>Get Decision:</strong> AI evaluates instantly</li>
+                    <li><strong>View Premium:</strong> See your calculated rate</li>
+                </ol>
+
+                <hr>
+
+                <h3>Coverage Limits</h3>
+                <p>Your coverage limits are based on:</p>
+                <ul>
+                    <li>🎯 Risk Score</li>
+                    <li>💰 Annual Income</li>
+                    <li>📊 Health Profile</li>
+                    <li>🏠 Asset Ownership</li>
+                    <li>🚗 Vehicle History</li>
+                </ul>
+
+                <hr>
+
+                <p class="info-text">The AI system will automatically approve or reject your application based on your risk profile and the amount requested.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- HAMBURGER MENU (MOBILE) -->
+<button class="hamburger-menu" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<script>
+// Mobile sidebar toggle
+document.getElementById('hamburger').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// Coverage slider and number input sync
+const coverageSlider = document.getElementById('coverage_amount');
+const coverageNumber = document.getElementById('coverage_number');
+
+coverageSlider.addEventListener('input', function() {
+    coverageNumber.value = this.value;
+    updateLimits();
+});
+
+coverageNumber.addEventListener('input', function() {
+    coverageSlider.value = this.value;
+    updateLimits();
+});
+
+// Insurance type change event
+document.querySelectorAll('input[name="insurance_type"]').forEach(radio => {
+    radio.addEventListener('change', updateLimits);
+});
+
+// Update limits from API
+async function updateLimits() {
+    const type = document.querySelector('input[name="insurance_type"]:checked').value;
+    const amount = parseInt(document.getElementById('coverage_amount').value);
+    
+    try {
+        const response = await fetch(`/api/limits?type=${type}`);
+        const data = await response.json();
+        
+        document.getElementById('limitsBox').style.display = 'block';
+        document.getElementById('minLimit').textContent = `₹${data.min_coverage.toLocaleString()}`;
+        document.getElementById('maxLimit').textContent = `₹${data.max_coverage.toLocaleString()}`;
+        
+        const status = document.getElementById('limitsStatus');
+        if (amount >= data.min_coverage && amount <= data.max_coverage) {
+            status.textContent = '✓ Amount is within your eligible range';
+            status.style.color = '#10b981';
+            coverageSlider.style.borderColor = '#10b981';
+        } else if (amount < data.min_coverage) {
+            status.textContent = `⚠ Amount is below minimum (₹${data.min_coverage.toLocaleString()})`;
+            status.style.color = '#f59e0b';
+            coverageSlider.style.borderColor = '#ef4444';
+        } else {
+            status.textContent = `⚠ Amount exceeds maximum (₹${data.max_coverage.toLocaleString()})`;
+            status.style.color = '#f59e0b';
+            coverageSlider.style.borderColor = '#ef4444';
+        }
+    } catch (error) {
+        console.error('Error fetching limits:', error);
+    }
+}
+
+// Initialize limits on load
+window.addEventListener('load', updateLimits);
+
+// Format numbers with commas
+function formatCurrency(num) {
+    return '₹' + num.toLocaleString('en-IN');
+}
+
+// Update displayed amount
+coverageSlider.addEventListener('input', function() {
+    const formatted = formatCurrency(parseInt(this.value));
+    this.style.background = `linear-gradient(to right, #2563eb 0%, #2563eb ${(this.value - this.min) / (this.max - this.min) * 100}%, #e5e7eb ${(this.value - this.min) / (this.max - this.min) * 100}%, #e5e7eb 100%)`;
+});
+
+// Form validation
+document.getElementById('applyForm').addEventListener('submit', function(e) {
+    const amount = parseInt(document.getElementById('coverage_amount').value);
+    const type = document.querySelector('input[name="insurance_type"]:checked').value;
+    const duration = document.getElementById('duration_years').value;
+    
+    if (!duration) {
+        e.preventDefault();
+        alert('Please select a duration');
+        return;
+    }
+    
+    // Real validation would check against limits
+    if (amount <= 0) {
+        e.preventDefault();
+        alert('Please select a valid coverage amount');
+    }
+});
+</script>
+{% endblock %}

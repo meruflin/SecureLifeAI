@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - SecureLifeAI{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <a href="/" class="logo">SecureLifeAI</a>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>Welcome Back</h1>
+        <p class="auth-subtitle">Log in to your account</p>
+
+        <form method="POST" class="auth-form" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    placeholder="you@example.com"
+                    class="form-control"
+                >
+                <small class="error-text" style="display:none;">Email is required</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="••••••••"
+                    class="form-control"
+                >
+                <small class="error-text" style="display:none;">Password is required</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">Log In</button>
+        </form>
+
+        <p class="auth-footer">
+            Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.querySelector('.auth-form').addEventListener('submit', function(e) {
+    let valid = true;
+    const fields = this.querySelectorAll('[required]');
+    
+    fields.forEach(field => {
+        if (!field.value.trim()) {
+            valid = false;
+            field.parentElement.querySelector('.error-text').style.display = 'block';
+            field.classList.add('invalid');
+        } else {
+            field.parentElement.querySelector('.error-text').style.display = 'none';
+            field.classList.remove('invalid');
+        }
+    });
+    
+    if (!valid) e.preventDefault();
+});
+</script>
+{% endblock %}

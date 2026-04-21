@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Application History - SecureLifeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">SecureLifeAI</div>
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('dashboard') }}" class="menu-item">
+                📊 Dashboard
+            </a>
+            <a href="{{ url_for('apply') }}" class="menu-item">
+                📝 Apply for Insurance
+            </a>
+            <a href="{{ url_for('history') }}" class="menu-item active">
+                📜 Application History
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item">
+                🚪 Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Application History</h1>
+            <p>Your past insurance applications and decisions</p>
+        </div>
+
+        {% if applications %}
+        <div class="card">
+            <div class="table-container">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">
+                                Date
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                            <th onclick="sortTable(1)">
+                                Type
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                            <th onclick="sortTable(2)">
+                                Requested
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                            <th onclick="sortTable(3)">
+                                Approved
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                            <th onclick="sortTable(4)">
+                                Premium
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                            <th onclick="sortTable(5)">
+                                Status
+                                <span class="sort-arrow">↕</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr class="history-row" data-id="{{ app['id'] }}">
+                            <td class="date-cell">{{ app['created_at'][:10] }}</td>
+                            <td class="type-cell">
+                                {% if app['insurance_type'] == 'life' %}👤 Life
+                                {% elif app['insurance_type'] == 'health' %}⚕️  Health
+                                {% elif app['insurance_type'] == 'vehicle' %}🚗 Vehicle
+                                {% elif app['insurance_type'] == 'property' %}🏠 Property
+                                {% endif %}
+                            </td>
+                            <td class="amount-cell">₹{{ "{:,.0f}".format(app['requested_amount']) }}</td>
+                            <td class="amount-cell">₹{{ "{:,.0f}".format(app['approved_amount']) }}</td>
+                            <td class="amount-cell">₹{{ "{:,.2f}".format(app['premium']) }}</td>
+                            <td class="status-cell">
+                                {% if app['status'] == 'approved' %}
+                                    <span class="status-pill approved">✓ Approved</span>
+                                {% else %}
+                                    <span class="status-pill rejected">✗ Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-number">{{ applications|length }}</span>
+                    <span class="stat-label">Total Applications</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">{{ applications|selectattr('status', 'equalto', 'approved')|list|length }}</span>
+                    <span class="stat-label">Approved</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">{{ applications|selectattr('status', 'equalto', 'rejected')|list|length }}</span>
+                    <span class="stat-label">Rejected</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">₹{{ "{:,.0f}".format(applications|map(attribute='premium')|sum) }}</span>
+                    <span class="stat-label">Total Premiums</span>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="card empty-state">
+            <h2>No Applications Yet</h2>
+            <p>You haven't submitted any insurance applications yet.</p>
+            <a href="{{ url_for('apply') }}" class="btn btn-primary btn-large">Apply Now</a>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<!-- HAMBURGER MENU (MOBILE) -->
+<button class="hamburger-menu" id="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<script>
+// Mobile sidebar toggle
+document.getElementById('hamburger').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('open');
+});
+
+// Table sorting
+let sortState = {};
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('historyTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const header = table.querySelectorAll('th')[columnIndex];
+    const isAscending = !sortState[columnIndex] || !sortState[columnIndex].ascending;
+    
+    rows.sort((a, b) => {
+        let aValue = a.querySelectorAll('td')[columnIndex].textContent.trim();
+        let bValue = b.querySelectorAll('td')[columnIndex].textContent.trim();
+        
+        // Parse numbers
+        if (!isNaN(aValue.replace(/[₹,]/g, ''))) {
+            aValue = parseFloat(aValue.replace(/[₹,]/g, ''));
+            bValue = parseFloat(bValue.replace(/[₹,]/g, ''));
+        } else if (aValue.match(/\d{4}-\d{2}-\d{2}/)) {
+            aValue = new Date(aValue);
+            bValue = new Date(bValue);
+        }
+        
+        return isAscending ? 
+            (aValue > bValue ? 1 : -1) :
+            (aValue < bValue ? 1 : -1);
+    });
+    
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Update sort state
+    table.querySelectorAll('th').forEach((th, idx) => {
+        th.querySelector('.sort-arrow').style.color = idx === columnIndex ? '#2563eb' : '#ddd';
+    });
+    
+    sortState[columnIndex] = { ascending: isAscending };
+}
+
+// Initialize table colors
+document.querySelectorAll('.history-row').forEach(row => {
+    const statusCell = row.querySelector('.status-cell');
+    if (statusCell.textContent.includes('Approved')) {
+        row.style.borderLeftColor = '#10b981';
+    } else {
+        row.style.borderLeftColor = '#ef4444';
+    }
+});
+</script>
+{% endblock %}
